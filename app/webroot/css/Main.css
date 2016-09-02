@@ -1,0 +1,352 @@
+#container {
+    /*
+    width: 1000px;
+    */
+    margin: 0;
+    padding: 15px;
+    //background-color: gray;
+}
+
+#header {
+    /*余裕を作る*/
+    padding: 5px;
+    /*角を丸める*/
+    border-radius: 5px;
+}
+
+#header:after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+#header_menu {
+    /*右寄せ*/
+    float: right;
+    /*余裕を作る*/
+    padding: 15px;
+    /*角を丸める*/
+    border-radius: 5px;
+    -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+             box-sizing: border-box;
+    background-color: white;
+}
+
+.linkstyle {
+    text-decoration:none;
+    color:#098a83;
+}
+
+#content {
+    /*余裕を作る*/
+    padding: 15px;
+    /*マージンを開ける*/
+    margin-top: 15px;
+    /*角を丸める*/
+    border-radius: 5px;
+    -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+             box-sizing: border-box;
+    background-color: white;
+}
+
+#content:after{
+    content: "";
+	display: block;
+	clear: both;
+}
+
+/*テキストエリアの大きさを変更できないようにする*/
+textarea {  
+    resize: none;  
+}  
+
+/*ログイン　左側*/
+#login_mainarea{
+    width: 800px;
+    min-height: 250px;
+    float: left;
+}
+#login_mainarea #title{
+    margin-left: 20px;
+    font-size: 1.7em;
+    font-weight: 900;
+}
+/*入力エラーの文字　登録時も同じものを使用*/
+#input_error_massage{
+    clear: both;
+    width: 600px;
+    margin-left: 50px;
+    background-color: #FFFF99;
+    color: red;
+}
+/*ログアウトしました　IDとパスワードが違います　など*/
+#flashMessage{
+    margin-left: 200px;
+    font-size: 1.5em;
+    color: #FF0000;
+}
+/*ログイン　右側*/
+#user_regist{
+    float: right;
+    width: 200px;
+    min-height: 250px;
+    text-align: center;
+    background-color:#D9EAF1;
+    border-radius: 5px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#user_regist .title{
+    margin-top: 30%;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: bold;
+}
+#user_regist #regist_button{
+    background-color: #427495;
+    border: solid 1px black;
+    color: white;
+    cursor: pointer;
+    font-size: 1.0em;
+    font-weight: 900;
+    width: 150px;
+    height: 30px;
+    border-radius: 5px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+/*ユーザ登録*/
+#regist_mainarea{
+    width: 1020px;
+    float: left;
+}
+#regist_mainarea #title{
+    float: left;
+    margin-left: 20px;
+    font-size: 1.7em;
+    font-weight: 900;
+}
+#regist_mainarea #already{ 
+    float: right;
+    font-size: 0.8em;
+}
+
+/*登録完了画面*/
+#regist_conp #title{
+    margin-left: 20px;
+    font-size: 1.7em;
+    font-weight: 900;
+}
+#login_button_style{
+    margin-top: 20px;
+    text-align: center;
+}
+#login_button{
+    width: 130px;
+    height: 30px;
+    cursor: pointer;
+}
+
+/*友達検索結果　見つからなかった時の文字*/
+.user_not_found {
+    color: red;
+}
+
+.red {
+    display:inline;
+    color: red;
+}
+
+/*入力フォーム*/
+.form_style {
+    clear: both;
+    padding-top: 10px;
+    width: 600px;
+    text-align: right;
+}
+
+.form_button {
+    text-align: center;
+    margin-top: 20px;
+}
+
+body {
+    width: 1080px;
+    margin: 0 auto;
+    height: auto;
+    background-color: #8EC2DA;
+}
+
+#FriendSearchId{
+    width: 400px;
+}
+
+.input_label{
+    margin-right: 20px;
+}
+
+#login_user_form{
+    width: 800px;
+    background-color: #e7f5fb;
+    border: solid 1px skyblue;
+}
+
+#login_user_form .tweet_area{
+    width: 780px;
+    padding: 10px;
+    border: none;
+    margin-top: -2px;
+    overflow:auto;
+}
+
+#login_user_form .tweet_area .content{
+    float: left;
+    width: 600px;
+}
+#login_user_form #toukou_button{
+    float: left;
+    width: 100px;
+    height: 30px;
+    cursor: pointer;
+    margin-left: 5%;
+    margin-top: 20px;
+}
+
+#tweet_massage_box{
+    text-align: center;
+}
+
+#TweetMessage{
+    width: 500px;
+    height: 80px;
+}
+
+/*ツイート関連*/
+#mainarea{
+    margin-top: 30px;
+    width: 800px;
+    height: auto;
+    float: left;
+}
+
+#sr_area{
+    border-top: dashed 2px #CCCCCC;
+}
+#sr_tweet{
+    /*改行やスペースをそのまま表示 端に行ったら自動で改行される*/
+    white-space: pre-wrap;
+    /*単語の途中でも強制改行*/
+    word-wrap: break-word;
+}
+.tweet_area{
+    width: 780px;
+    padding: 10px;
+    border-top: dashed 2px #969696;
+    border-bottom: dashed 2px #969696;
+    margin-top: -2px;
+    overflow:auto;
+}
+
+.tweet_area .content{
+    float: left;
+    width: 600px;
+}
+
+.tweet_area #sr_button{
+    float: left;
+    width: 100px;
+    margin-left: 8.5%;
+    margin-top: 20px;
+}
+.tweet_area #sr_time{
+    text-align: left;
+    font-size: 0.8em;
+    margin-top: 10px;
+    text-decoration: underline;
+}
+
+/*次へ　と　前へ　全体の設定*/
+#page_link{
+    text-align: center;
+    margin-top: 30px;
+}
+.next{
+    text-decoration:none;
+    color:lightseagreen;
+    margin-left: 10px;
+}
+.prev{
+    text-decoration:none;
+    color:lightseagreen;
+    margin-right: 10px;
+}
+/*ユーザー情報（右側のやつ）*/
+.user_info{
+    margin-top: 30px;
+    float: right;
+    width: 210px;
+    background-color: #8EC2DA;
+}
+.user_info_name{
+    margin-top: 10px;
+    margin-bottom: 20px;
+    width: 210px;
+    text-align: center;
+}
+.user_info_following{
+    float: left;
+    width: 65px;
+    margin-left: 10px;
+}
+.user_info_followers{
+    float: left;
+    width: 75px;
+}
+.user_info_tweet{
+    float: left;
+    width: 50px;
+    margin-right: 10px;
+    margin-bottom: 40px;
+}
+/*
+.user_info_tweet{
+    float: left;
+    text-align: left;
+    width: 65px;
+}
+.user_info_tweet_num{
+    text-align: right;
+    margin-right: 10px;
+}
+*/
+
+/*友達検索画面*/
+#search #title{
+    margin-left: 20px;
+    font-size: 1.7em;
+    font-weight: 900;
+}
+
+#search_button{
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+/*フォローボタン*/
+#follow_button{
+    cursor: pointer;
+    text-align: center;
+    width: 100px;
+}
+/*リムーブボタン*/
+#remove_button{
+    cursor: pointer;
+    text-align: center;
+    width: 100px;
+}
