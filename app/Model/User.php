@@ -100,6 +100,21 @@ class User extends AppModel{
 		}
 		return false;
 	}
+    //存在チェック
+    public function checkExist($followid = null) {
+        $conditions = array('username'=>$followid);
+        $exist = $this->find('count',array(
+            'conditions' => $conditions,
+        ));
+        return $exist;
+    }
+    //ユーザ情報取得
+    public function getUserInfo($username = null){
+        $opt = array('username'=>$username);
+        return $datas = $this->find('first',array(
+            'conditions' => $opt
+        ));
+    }
 
 }
 

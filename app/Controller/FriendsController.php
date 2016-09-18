@@ -21,17 +21,10 @@ class FriendsController extends AppController {
             $this->autoRender = false;
         }
         //重複チェック
-        $conditions = array('username'=>$userid,'followID'=>$followid);
-        $check = $this->Friend->find('count',array(
-            'conditions' => $conditions,
-        ));
+        $check = $this->Friend->checkDouble($userid,$followid);
         //存在チェック
-        $conditions = array('username'=>$followid);
-        $exist = $this->User->find('count',array(
-            'conditions' => $conditions,
-        ));    
-        $data = array('Friend' => array('username' => $userid, 'followID' => $followid));
-        if($userid == $this->Session->read('userid') && $check == 0 && $exist == 1 && $this->Friend->save($data) ){
+        $exist = $this->User->checkExist($followid);
+        if($userid == $this->Session->read('userid') && $check == 0 && $exist == 1 && $this->Friend->saveFollow($userid,$followid) ){
             if($userid == $followid){
                 //登録時の処理なので、登録完了画面にリダイレクトさせる。
                 $this->redirect(array('controller' => 'users', 'action' => 'completion_of_registration'));
@@ -62,13 +55,7 @@ class FriendsController extends AppController {
         if($this->request->is('post')){
             $this->autoRender = false;
             $userid = $this->Session->read('userid');
-            if(empty($_POST['remove_id'])){
-                $removeid = null;
-            }else{
-                $removeid = $_POST['remove_id'];
-            }
-            $conditions = array('username'=>$userid,'followID'=>$removeid);
-            if($userid == $this->Session->read('userid') && $this->Friend->deleteAll($conditions,false)){
+            if($userid == $this->Session->read('userid') && $this->Friend->deleteFollow($userid,$_POST['remove_id'])){
                 $result['error'] = false;
             }else{
                 $result['error'] = true;
@@ -110,56 +97,20 @@ class FriendsController extends AppController {
         }
         
         $this->set('search_text',$search_text);
-        //何も入力されていない場合の処理
-        if($search_text == "全てのユーザー"){
-            $search_text = "";
-        }
-        //（条件設定）ユーザーIDと名前に対してlike検索、自分は含めない
-        $opt = array(
-            "OR" => array(
-                "username like" => '%'.$search_text.'%',
-                "name like" => '%'.$search_text.'%'
-            ),
-            "NOT" => array(
-                "username" => $this->Session->read('userid') 
-            )
-        );
-                
-        //idや名前を検索
-        $this->paginate = array(
-                'conditions' => $opt,
-                'limit' => 10,
-                'order' => 'created DESC'
-        );
-        
-        //値を代入
+        $this->paginate = $this->Friend->searchFriendsOptions($this->Session->read('userid'),$search_text);
         $search_result = $this->paginate();
+        
         //各々の最新ツイートを取得
         foreach($search_result as &$val){
             //フォローしているか検索
-            $opt = array('AND'=>array('username'=>$this->Session->read('userid'),'followID' => $val['User']['username']));
-            $datas = $this->Friend->find('first',array(
-                'conditions' => $opt,
-            ));
-            if(!empty($datas)){
-                //フォローしている
-                $val['User']['follow'] = 1;
-            }else{
-                //フォローしていない
-                $val['User']['follow'] = 0;
-            }
-            
+            $val['User']['follow'] = $this->Friend->isFollow($this->Session->read('userid'),$val['User']['username']);
             if($val['User']['private'] == 1 && $val['User']['follow'] == 0){
                 //非公開かつフォローしていなければ
                 $val['User']['tweet'] = "非公開ユーザーです";
                 $val['User']['tweet_time'] = null;
             }else{
-                $opt = array('username' => $val['User']['username']);
-                $datas = $this->Tweet->find('first',array(
-                    'conditions' => $opt,
-                    'order' => 'created DESC'
-                ));
                 //非公開でなければツイートを取得
+                $datas = $this->Tweet->getRecentTweet($val['User']['username']);
                 if(!empty($datas)){
                     //ツイートがある
                     $val['User']['tweet'] = $datas['Tweet']['message'];
@@ -178,89 +129,36 @@ class FriendsController extends AppController {
     //フォロー、フォロワー　一覧
     public function table($target_id=null,$menu=null){
         //引数がセットされていない場合はホームにリダイレクトさせる
-        if(empty($target_id)){
-            $this->redirect(array('controller' => 'tweets', 'action' => 'home',$this->Session->read('userid')));
-        }
-        if(empty($menu)){
+        if(empty($target_id) || empty($menu)){
             $this->redirect(array('controller' => 'tweets', 'action' => 'home',$this->Session->read('userid')));
         }
         //ビューに引数を渡す
         $this->set('target_id',$target_id);
         $this->set('menu',$menu);
-        //menuによって処理を分ける
-        if($menu == 'following'){
-            //フォロー者一覧の場合
-            $opt = array(
-                    "username" => $target_id,
-                    "NOT" => array(
-                        "followID" => $target_id 
-                    )
-            );
-        }else if($menu == 'followers'){
-            //被フォロー者（フォロワー）一覧の場合
-            $opt = array(
-                    "followID" => $target_id,
-                    "NOT" => array(
-                        "username" => $target_id 
-                    )
-            );
-        }else{
-            //それ以外はホームにリダイレクトさせる
-            $this->redirect(array('controller' => 'tweets', 'action' => 'home',$this->Session->read('userid')));
-        }
-          
-        //フォロー、フォロワーの検索 コントローラのはじめで、public $uses = array('User','Friend','Tweet');
-        //のような宣言をした場合、一番左以外のモデルを利用する場合はモデル名を引数に指定する
-        $this->paginate = array(
-            'Friend' => array(
-                'limit' => 10,
-                'order' => 'created DESC',
-                'conditions' => $opt
-            )
-        );
-        //値を代入しておく
+        //フォローorフォロワー検索　menuによって処理を分ける
+        $this->paginate = $this->Friend->searchFollowOptions($menu,$target_id);
         $search_result = $this->paginate('Friend');
         
-        foreach($search_result as &$val){
-
-            //自分がフォローしているか検索
+        foreach($search_result as &$val){    
+            //自分が相手をフォローしているか
             if($menu == 'following'){
-                $opt = array('AND'=>array('username'=>$this->Session->read('userid'),'followID' => $val['Friend']['followID']));
+                $opt = $val['Friend']['followID'];
+                $val['Friend']['follow'] = $this->Friend->isFollow($this->Session->read('userid'),$val['Friend']['followID']);
             }else{
-                $opt = array('AND'=>array('username'=>$this->Session->read('userid'),'followID' => $val['Friend']['username']));
+                $opt = $val['Friend']['username'];
+                $val['Friend']['follow'] = $this->Friend->isFollow($this->Session->read('userid'),$val['Friend']['username']);
             }
-            $datas = $this->Friend->find('first',array(
-                'conditions' => $opt,
-            ));
-            if(!empty($datas)){
-                //フォローしている
-                $val['Friend']['follow'] = 1;
-            }else{
-                //フォローしていない
-                $val['Friend']['follow'] = 0;
-            }
-            
-            //名前の取得（非公開かどうかの判定も）
-            if($menu == 'following'){
-                $opt = array('username'=>$val['Friend']['followID']);
-            }else{
-                $opt = array('username'=>$val['Friend']['username']);
-            }
-            $datas = $this->User->find('first',array(
-                'conditions' => $opt
-            ));
-            $val['Friend']['name'] = $datas['User']['name'];
+            //名前は何か
+            $userdatas = $this->User->getUserInfo($opt);
+            $val['Friend']['name'] =$userdatas['User']['name'];
             //最新ツイート、ツイート時間の取得
-            if($datas['User']['private'] == 1 && $val['Friend']['follow'] == 0){
+            if($userdatas['User']['private'] == 1 && $val['Friend']['follow'] == 0){
                 //非公開　かつ　ログインユーザーがその人をフォローしていない　ならその旨を記述
                 $val['Friend']['tweet'] = "非公開ユーザーです";
                 $val['Friend']['tweet_time'] = null;
             }else{
-                //非公開でないか、フォローしてればツイートを取得 条件は同じ
-                $datas = $this->Tweet->find('first',array(
-                    'conditions' => $opt,
-                    'order' => 'created DESC'
-                ));
+                //非公開でないか、フォローしてればツイートを取得 $optはそのままで良い
+                $datas = $this->Tweet->getRecentTweet($opt);
                 if(!empty($datas)){
                     //ツイートがある
                     $val['Friend']['tweet'] = $datas['Tweet']['message'];
@@ -276,23 +174,41 @@ class FriendsController extends AppController {
         $this->set('search_result',$search_result);
         //ユーザ情報（右側）のための情報取得
         //フォローしている数
-        $opt = array('username'=>$target_id,'NOT'=>array('followID'=>$target_id));
-        $datas = $this->Friend->find('count',array(
-            'conditions' => $opt,
-        ));
-        $this->set('user_info_following',$datas);
+        $this->set('user_info_following',$this->Friend->numberOfFollow($target_id));
         //フォローされてる数
-        $opt = array('followID'=>$target_id,'NOT'=>array('username'=>$target_id));
-        $datas = $this->Friend->find('count',array(
-            'conditions' => $opt,
-        ));
-        $this->set('user_info_followers',$datas);
+        $this->set('user_info_followers',$this->Friend->numberOfFollower($target_id));
         //ツイート数
-        $opt = array('username'=>$target_id);
-        $datas = $this->Tweet->find('count',array(
-            'conditions' => $opt,
-        ));
-        $this->set('user_info_tweet',$datas);
-        
+        $this->set('user_info_tweet',$this->Tweet->numberOfTweet($target_id));
     }
+    
+    //テストフォロー作成用
+    /*
+    public function addfriend(){
+        $this->autoRender = false;
+        for($num = 1; $num <= 100; $num++){
+            $username = "test".$num;
+            //1～100までの配列
+            $ar_num = range(1,100);
+            //自分を取り除く
+            $split = array_splice($ar_num, $num-1, 1);
+            shuffle($ar_num);
+            for($fol = 0; $fol < 20; $fol++){
+                if($fol == 0){
+                    $followid = "test".$num; 
+                }else{
+                    $followid = "test".$ar_num[$fol]; 
+                }
+                $delay = $num - 1000;
+                $created = date('Y-m-d H:i:s', strtotime("- 4 days $delay seconds"));
+                $data = array('Friend' => array('username' => $username, 'followID' => $followid, 'created' => $created));
+                $this->Friend->create(false);  
+                if($this->Friend->save($data,$validate=false)){
+                    echo $num.":成功<br>";
+                }else{
+                    echo $num.":<h1>失敗</h1><br>";
+                }
+            }    
+        }
+    }
+    */
 }

@@ -22,6 +22,13 @@
 		<div id="header">
             <?php
                 if($this->Session->check('userid')):
+            ?>
+                    <script type="text/javascript">
+                     <!--
+                    var session_username = "<?php echo $this->Session->read('userid'); ?>";
+                    -->
+                     </script>
+            <?php
                     echo $this->Html->image('twitterlogo.png', array('alt' => 'TeitterModoki','url'=>'/tweets/home/'.h($this->Session->read('userid'))));
                 else:
                     echo $this->Html->image('twitterlogo.png', array('alt' => 'TeitterModoki','url'=>'/users/'));

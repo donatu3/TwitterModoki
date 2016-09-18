@@ -12,7 +12,7 @@ class UsersController extends AppController {
         parent::beforeFilter();
         //未ログインでアクセスできるアクションを指定
         //これ以外のアクションへのアクセスはloginにリダイレクトされる規約になっている
-        $this->Auth->allow('register', 'login','completion_of_registration');
+        $this->Auth->allow('register', 'login','completion_of_registration','adduser');
     }
 
     public function index(){
@@ -83,5 +83,27 @@ class UsersController extends AppController {
         $this->Session->setFlash('ログアウトしました');
         $this->redirect('login');
     }
+    //テストユーザ作成用
+    /*
+    public function adduser(){
+        $this->autoRender = false;
+        for($num = 1; $num <= 100; $num++){
+            $name = "test".$num;
+            $username = "test".$num;
+            $password = AuthComponent::password("pass");
+            $mail = "test".$num."@example.com";
+            $private = 0;
+            $delay = $num - 1000;
+            $created = date('Y-m-d H:i:s', strtotime("- 5 days $delay seconds"));
+            $data = array('User' => array('name' => $name, 'username' => $username, 'password' => $password, 'mail' => $mail, 'private' => $private, 'created' => $created));
+            $this->User->create(false);  
+            if($this->User->save($data,$validate=false)){
+                echo $num.":成功<br>";
+            }else{
+                echo $num.":<h1>失敗</h1><br>";
+            }
+        }
+    }
+    */
 
 }
